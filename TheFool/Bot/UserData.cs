@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Lagrange.Core.Common;
 using Lagrange.Core.Common.Interface;
 using Lagrange.Core.Common.Interface.Api;
+using Console = TheFool.Utility.Console;
 
 namespace TheFool.Bot;
 
@@ -11,14 +12,16 @@ public class UserData
     public const string KeyStore = "Config/Keystore.json";
     public const string DeviceInfo = "Config/DeviceInfo.json";
 
-    public static void SaveKeystore(BotKeystore keystore) =>
+    public static void SaveKeystore(BotKeystore keystore)
+    {
         File.WriteAllText(KeyStore, JsonSerializer.Serialize(keystore));
+    }
 
     public static BotKeystore? LoadKeystore()
     {
         if (!File.Exists(KeyStore)) return null;
         var text = File.ReadAllText(KeyStore);
-        return JsonSerializer.Deserialize<BotKeystore>(text, new JsonSerializerOptions()
+        return JsonSerializer.Deserialize<BotKeystore>(text, new JsonSerializerOptions
         {
             ReferenceHandler = ReferenceHandler.Preserve
         });
@@ -56,13 +59,13 @@ public class UserData
 
         bot.Invoker.OnBotLogEvent += (context, @event) =>
         {
-            Utility.Console.ChangeColorByTitle(@event.Level);
-            Console.WriteLine(@event.ToString());
+            Console.ChangeColorByTitle(@event.Level);
+            System.Console.WriteLine(@event.ToString());
         };
 
         bot.Invoker.OnBotOnlineEvent += (context, @event) =>
         {
-            Console.WriteLine(@event.ToString());
+            System.Console.WriteLine(@event.ToString());
             SaveKeystore(bot.UpdateKeystore());
         };
 
