@@ -14,7 +14,10 @@ public class LogUploader
 {
     private const string McLogs = "https://api.mclo.gs/1/log";
 
-    private static readonly HttpClient _client = new()
+    private static readonly HttpClient Client = new(new HttpClientHandler()
+    {
+        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    })
     {
         Timeout = TimeSpan.FromSeconds(10)
     };
@@ -91,14 +94,14 @@ public class LogUploader
                 return;
             }
 
-            var content = _client.GetStringAsync(fileUrl).Result;
+            var content = Client.GetStringAsync(fileUrl).Result;
             await UploadFile(content).ContinueWith(task =>
             {
                 if (task.IsCompletedSuccessfully)
                 {
                     var result = task.Result;
                     var text = result == null ? "上传失败!" : $"上传成功：{result}";
-                    var nextChain = MessageBuilder.Friend(rawChain.FriendUin).Forward(rawChain).Text(text).Build();
+                    var nextChain = nextMessage.Forward(rawChain).Text(text).Build();
                     bot.SendMessage(nextChain);
                 }
                 else
@@ -111,7 +114,7 @@ public class LogUploader
         {
             var crashReport = ZipFilePrefix.Any(prefix => fileInfo.Name.Contains(prefix));
             if (!crashReport) return;
-            var zipBytes = _client.GetByteArrayAsync(fileEntity.FileUrl);
+            var zipBytes = Client.GetByteArrayAsync(fileEntity.FileUrl);
             using var zipStream = new MemoryStream(zipBytes.Result);
             using var archive = new ZipArchive(zipStream);
             List<string> messages = new();
@@ -152,7 +155,7 @@ public class LogUploader
         var content = new StringContent($"content={Uri.EscapeDataString(contents)}", Encoding.UTF8,
             "application/x-www-form-urlencoded");
 
-        var response = await _client.PostAsync(McLogs, content);
+        var response = await Client.PostAsync(McLogs, content);
         response.EnsureSuccessStatusCode();
         var json = await response.Content.ReadAsStringAsync();
         var jsonObj = JsonNode.Parse(json)?.AsObject();

@@ -30,6 +30,7 @@ internal static class Program
             };
             bot.Invoker.OnBotOnlineEvent += (context, eventArgs) => { Console.WriteLine(context.BotName); };
             bot.Invoker.OnFriendMessageReceived += LogUploader.OnFriendMessageReceived;
+            bot.Invoker.OnGroupMessageReceived += LogUploader.OnFriendMessageReceived;
             await bot.LoginByPassword();
         }
         else
