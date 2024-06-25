@@ -15,6 +15,7 @@ internal static class Program
 
     private static async Task Login()
     {
+        if (!Directory.Exists("Config")) Directory.CreateDirectory("Config");
         if (File.Exists(UserData.KeyStore))
         {
             var config = new BotConfig

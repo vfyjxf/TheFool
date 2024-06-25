@@ -10,11 +10,11 @@ using Lagrange.Core.Message.Entity;
 
 namespace TheFool.Module;
 
-public class LogUploader
+public static class LogUploader
 {
     private const string McLogs = "https://api.mclo.gs/1/log";
 
-    private static readonly HttpClient Client = new(new HttpClientHandler()
+    private static readonly HttpClient Client = new(new HttpClientHandler
     {
         ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
     })
@@ -24,7 +24,7 @@ public class LogUploader
 
     private static readonly string[] SupportTypes =
     {
-        "txt", "log"
+        "txt", "log", "zs", "java", "groovy"
     };
 
     private static readonly string[] ZipTypes =
@@ -124,9 +124,9 @@ public class LogUploader
                 var entryExtension = entryInfo.Extension.Replace(".", "");
                 var log = ValidLogPrefix.Any(prefix => entry.Name.Contains(prefix));
                 if (!SupportTypes.Contains(entryExtension) || !log) continue;
-                using var entryStream = entry.Open();
+                await using var entryStream = entry.Open();
                 using var reader = new StreamReader(entryStream);
-                var content = reader.ReadToEnd();
+                var content = await reader.ReadToEndAsync();
                 await UploadFile(content).ContinueWith(task =>
                 {
                     if (task.IsCompletedSuccessfully)
